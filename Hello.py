@@ -21,10 +21,10 @@ LOGGER = get_logger(__name__)
 def run():
     st.set_page_config(
         page_title="Kathalyst",
-        page_icon="👋",
+        page_icon="images/codeAID_green.png",
     )
 
-    st.write("# Welcome to Streamlit! 👋")
+    st.write("# Welcome to Kathalyst! 👋")
 
     st.sidebar.success("Select a demo above.")
 
