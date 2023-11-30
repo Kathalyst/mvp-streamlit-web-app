@@ -604,7 +604,9 @@ def main() -> None:
     #    firebase_admin.initialize_app(cred)
     
     if not firebase_admin._apps:
-        cred = firebase_admin.credentials.Certificate(st.secrets["firebase_auth_token"])
+        cred = firebase_admin.credentials.Certificate(
+            dict(st.secrets["firebase_auth_token"])
+        )
         firebase_admin.initialize_app(cred)
 
     pretty_title(TITLE)
