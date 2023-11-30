@@ -236,13 +236,13 @@ def register_user_form(preauthorized: Union[str, Sequence[str], None]) -> None:
     # I multiply this number by 1.5 to display password strength with st.progress
     # For an explanation, read this -
     # https://en.wikipedia.org/wiki/Password_strength#Entropy_as_a_measure_of_password_strength
-    alphabet_chars = len(set(password))
-    strength = int(len(password) * math.log2(alphabet_chars) * 1.5)
-    if strength < 100:
-        st.progress(strength)
-        return st.warning(
-            "Password is too weak. Please choose a stronger password.", icon="⚠️"
-        )
+
+    # Validate password
+    if not is_valid_password(password):
+        st.warning("Password requirements not met. Please choose a stronger password.", icon="⚠️")
+        return None
+
+
     auth.create_user(
         email=email, password=password, display_name=name, email_verified=False
     )
@@ -260,6 +260,29 @@ def register_user_form(preauthorized: Union[str, Sequence[str], None]) -> None:
         "please verify your email address by clicking on the link we have sent to your inbox."
     )
     return st.balloons()
+
+def is_valid_password(password: str) -> bool:
+    """Validate password based on the requirements.
+
+    Password should:
+    - Be at least 8 characters long
+    - Contain a mix of alphabets, numbers, and symbols
+
+    Parameters:
+        password (str): The password to validate.
+
+    Returns:
+        bool: True if the password meets the requirements, False otherwise.
+    """
+    # Check minimum length
+    if len(password) < 8:
+        return False
+
+    # Check for a mix of alphabets, numbers, and symbols
+    if not (any(c.isalpha() for c in password) and any(c.isdigit() for c in password) and any(not c.isalnum() for c in password)):
+        return False
+
+    return True
 
 
 def update_password_form() -> None:
@@ -574,11 +597,16 @@ def main() -> None:
     )
 
     # noinspection PyProtectedMember
+    #if not firebase_admin._apps:
+    #    cred = firebase_admin.credentials.Certificate(
+    #        dict(st.secrets["firebase_auth_token"])
+    #   )
+    #    firebase_admin.initialize_app(cred)
+    
     if not firebase_admin._apps:
-        cred = firebase_admin.credentials.Certificate(
-            dict(st.secrets["firebase_auth_token"])
-        )
+        cred = firebase_admin.credentials.Certificate(st.secrets["firebase_auth_token"])
         firebase_admin.initialize_app(cred)
+
     pretty_title(TITLE)
     cookie_manager, cookie_name = stx.CookieManager(), "login_cookie"
 
