@@ -1,51 +1,60 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import streamlit as st
-from streamlit.logger import get_logger
+import github_process
+import gpt4_process
+import llama2_process
+import pandas as pd
 
-LOGGER = get_logger(__name__)
+st.set_page_config(
+    page_title="Kathalyst Web App",
+    page_icon="images/codeAID_green.png",
+)
 
+# placeholder = st.empty()
 
-def run():
-    st.set_page_config(
-        page_title="Kathalyst",
-        page_icon="images/codeAID_green.png",
-    )
+st.header("Kathalyst - Automated Software Documentation")
 
-    st.write("# Welcome to Kathalyst! 👋")
+github_link = st.sidebar.text_input("""
+Github Link:
 
-    st.sidebar.success("Select a demo above.")
+(Note: Please make your repository public before using the tool.)
+""")
 
-    st.markdown(
-        """
-        Streamlit is an open-source app framework built specifically for
-        Machine Learning and Data Science projects.
-        **👈 Select a demo from the sidebar** to see some examples
-        of what Streamlit can do!
-        ### Want to learn more?
-        - Check out [streamlit.io](https://streamlit.io)
-        - Jump into our [documentation](https://docs.streamlit.io)
-        - Ask a question in our [community
-          forums](https://discuss.streamlit.io)
-        ### See more complex demos
-        - Use a neural net to [analyze the Udacity Self-driving Car Image
-          Dataset](https://github.com/streamlit/demo-self-driving)
-        - Explore a [New York City rideshare dataset](https://github.com/streamlit/demo-uber-nyc-pickups)
-    """
-    )
+model = st.sidebar.radio("Which LLM Model would you like to use?",["GPT-4","Llama 2 70b"],index=0)
 
+if st.sidebar.button("Submit"):
+    #process if submit button is pressed
+    print(f'Processing {github_link}')
+    
+    file_contents,file_names,dir = github_process.control(github_link)
 
-if __name__ == "__main__":
-    run()
+    st.write("Processing Github Repo: "+str(github_link))
+
+    doc,vdd = st.tabs(["Documentation","Visual Dependency Diagram"])
+
+    with doc:
+        # print("\n\nInside Documentation Tab")
+        with st.spinner(text="In progress..."):
+            if model == "GPT-4":
+                output = gpt4_process.control(file_contents,file_names,dir)
+            elif model == "Llama 2 70b":
+                output = llama2_process.control(file_contents,file_names)
+        st.markdown(output)
+    with vdd:
+        # print("\n\nInside VDD Tab")
+        st.write("Visual Dependency Diagram coming soon ...")
+    
+    pass
+
+example_links = ["https://github.com/anushkasingh98/personal-portfolio","https://github.com/anushkasingh98/demo-repo",
+                 "https://github.com/anushkasingh98/CapitalisationProject"]
+df = pd.DataFrame(example_links,columns=["Example Github Links"])
+
+st.sidebar.table(df)
+
+st.sidebar.markdown("Made with ❤️ by Kathalyst")
+
+# clear = st.sidebar.radio("Clear page?",["Yes","No"],index=1)
+# if clear == "Yes":
+#     placeholder.empty()
+# elif clear == "No":
+#     pass
